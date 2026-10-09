@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Commission Calculator — Draft</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #eef2f7 0%, #dce6f2 100%); min-height: 100vh;
+    display: flex; align-items: flex-start; justify-content: center; padding: 16px; color: #1c2733; }
+  .card { background:#fff; width:100%; max-width:480px; border-radius:16px;
+    box-shadow:0 12px 40px rgba(30,60,100,0.15); overflow:hidden; }
+  .header { background:linear-gradient(135deg,#1f6fbf,#144a86); color:#fff; padding:22px; }
+  .header h1 { font-size:20px; font-weight:600; }
+  .header p { font-size:13px; opacity:.88; margin-top:4px; }
+  .body { padding:22px; }
+  .field { margin-bottom:16px; }
+  label { display:block; font-size:13px; font-weight:600; margin-bottom:7px; color:#3a4a5a; }
+  input[type=number], input[type=text] { width:100%; padding:13px 12px; border:1.5px solid #cfd8e3;
+    border-radius:10px; font-size:16px; background:#fff; -webkit-appearance:none; appearance:none; }
+  input:focus { outline:none; border-color:#1f6fbf; }
+  .two { display:flex; gap:12px; } .two .field { flex:1; }
+  .sec { font-size:12px; font-weight:700; color:#5a6a7a; text-transform:uppercase; letter-spacing:.05em; margin:8px 0 10px; }
+  .check { display:flex; align-items:center; gap:10px; margin-bottom:14px; font-size:14px; font-weight:500; color:#3a4a5a; }
+  .check input { width:20px; height:20px; accent-color:#1f6fbf; }
+  .sub { padding:12px; background:#f7f9fc; border-radius:10px; margin:-4px 0 16px; }
+  .sub.hide { display:none; }
+  .team-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+  .team-row input.nm { flex:2; } .team-row input.pc { flex:1; }
+  .team-row button { border:1.5px solid #f2b8b2; background:#fff; color:#c0392b; border-radius:8px;
+    padding:10px 12px; font-weight:700; cursor:pointer; }
+  .addbtn { border:none; background:#1f6fbf; color:#fff; border-radius:8px; padding:10px 14px;
+    font-size:13px; font-weight:700; cursor:pointer; }
+  .hint { font-size:11px; color:#98a4b0; margin-top:6px; line-height:1.45; }
+  .warn { font-size:12px; color:#c0392b; font-weight:600; margin-top:6px; }
+  .box { background:#f5f9ff; border:1.5px solid #d3e3f7; border-radius:12px; padding:16px; margin-bottom:12px; }
+  .line { display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:13px; color:#5a6a7a; }
+  .line span:last-child { font-size:15px; font-weight:700; color:#144a86; text-align:right; }
+  .line span.neg { color:#c0392b; }
+  .line.total { border-top:1px dashed #d3e3f7; margin-top:4px; padding-top:10px; }
+  .line.total span:first-child { font-weight:700; color:#33463c; font-size:14px; }
+  .line.total span:last-child { font-size:20px; }
+  .hero { background:#e8f6ee; border:1.5px solid #b6e2cd; border-radius:12px; padding:18px; text-align:center; margin-bottom:12px; }
+  .hero .lbl { font-size:13px; color:#5a6a7a; }
+  .hero .amt { font-size:34px; font-weight:800; color:#0d6e48; margin-top:2px; }
+  .who { padding:8px 0; border-bottom:1px solid #e8eef6; }
+  .who:last-child { border-bottom:none; }
+  .who .wn { font-size:13px; color:#5a6a7a; }
+  .who .wa { font-size:18px; font-weight:800; color:#144a86; margin-top:2px; }
+  .amtline { font-size:13px; font-weight:700; color:#0d6e48; margin-top:6px; }
+  .mate { margin-bottom:10px; }
+  .mate .team-row { margin-bottom:0; }
+  .note { font-size:11px; color:#98a4b0; margin-top:8px; text-align:center; line-height:1.5; }
+  .badge { display:inline-block; background:#fff3cd; color:#8a6d1a; font-size:10px; font-weight:700; padding:3px 8px; border-radius:10px; margin-left:6px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header"><h1>Agent Commission</h1><p>Your take-home after co-broke &amp; team sharing</p></div>
+  <div class="body">
+
+    <div class="sec">Transaction</div>
+    <div class="field"><label>Transacted price ($)</label><input type="text" inputmode="numeric" id="price" value="1,000,000"></div>
+    <div class="field"><label>Commission rate (%)</label><input type="number" inputmode="decimal" id="rate" value="2" step="0.1" min="0"></div>
+
+    <label class="check"><input type="checkbox" id="gst" checked> Include GST (9%)</label>
+
+    <div class="sec">Co-broke</div>
+    <label class="check"><input type="checkbox" id="cb"> Co-broke with another agent</label>
+    <div class="sub hide" id="cbBox">
+      <div class="field"><label>Co-broke agent name</label>
+        <input type="text" id="cbName" placeholder="Co-broke agent"></div>
+      <div class="field" style="margin:0"><label>Co-broke fee (% of transacted price)</label>
+        <input type="number" inputmode="decimal" id="cbPct" value="1" step="0.1" min="0">
+        <div class="amtline" id="cbAmt">= $0.00</div></div>
+      <div class="warn" id="cbWarn"></div>
+    </div>
+
+    <div class="sec">Team sharing</div>
+    <label class="check"><input type="checkbox" id="tm"> Share with teammates</label>
+    <div class="sub hide" id="tmBox">
+      <div id="team"></div>
+      <button type="button" class="addbtn" id="addMate">+ Add teammate</button>
+      <div class="hint">Each teammate's % is of your side's commission (after co-broke). You keep the remainder.</div>
+      <div class="warn" id="tmWarn"></div>
+    </div>
+
+    <div class="hero"><div class="lbl">Your take-home</div><div class="amt" id="oYou">$0</div></div>
+
+    <div class="box">
+      <div class="line"><span>Commission (before GST)</span><span id="oComm">$0</span></div>
+      <div class="line" id="gstLine"><span>GST 9%</span><span id="oGst">$0</span></div>
+      <div class="line total"><span>Total billed to client</span><span id="oBill">$0</span></div>
+    </div>
+
+    <div class="box">
+      <div class="line"><span>Commission (before GST)</span><span id="oComm2">$0</span></div>
+      <div class="line" id="cbLine"><span>Less: co-broke fee</span><span class="neg" id="oCb">$0</span></div>
+      <div class="line total"><span>Your side's commission</span><span id="oSide">$0</span></div>
+    </div>
+
+
+    <div class="note">Draft for testing <span class="badge">NOT LIVE</span><br>
+      GST is added on top of the commission and billed to the client; payouts are based on the
+      commission before GST. Confirm exact splits with your agency.</div>
+  </div>
+</div>
+
+<script>
+  var $ = function(id){ return document.getElementById(id); };
+  function num(v){ return parseFloat((''+v).replace(/,/g,'')) || 0; }
+  function money(v){ return '$' + (Math.round(v*100)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+  function commas(el){
+    var caret = el.selectionStart, before = el.value.slice(0,caret), d=0, i;
+    for (i=0;i<before.length;i++){ var c=before.charCodeAt(i); if(c>=48&&c<=57) d++; }
+    var s = el.value.replace(/[^0-9]/g,'');
+    while (s.length>1 && s.charAt(0)==='0') s = s.slice(1);
+    var out='', n=0;
+    for (i=s.length-1;i>=0;i--){ out=s.charAt(i)+out; n++; if(n%3===0 && i>0) out=','+out; }
+    el.value = out;
+    var pos=0, seen=0;
+    while (pos<out.length && seen<d){ var cc=out.charCodeAt(pos); if(cc>=48&&cc<=57) seen++; pos++; }
+    try { el.setSelectionRange(pos,pos); } catch(e){}
+  }
+
+  function addMate(name, pct){
+    var wrap = document.createElement('div');
+    wrap.className = 'mate';
+    var row = document.createElement('div');
+    row.className = 'team-row';
+    row.innerHTML = '<input type="text" class="nm" placeholder="Teammate name">' +
+      '<input type="number" inputmode="decimal" class="pc" placeholder="%" min="0" max="100" step="1">' +
+      '<button type="button">✕</button>';
+    row.querySelector('.nm').value = name || '';
+    row.querySelector('.pc').value = pct != null ? pct : '';
+    row.querySelector('button').addEventListener('click', function(){ wrap.remove(); calc(); });
+    row.querySelectorAll('input').forEach(function(i){ i.addEventListener('input', calc); });
+    var amt = document.createElement('div');
+    amt.className = 'amtline mamt';
+    amt.textContent = '= $0.00';
+    wrap.appendChild(row); wrap.appendChild(amt);
+    $('team').appendChild(wrap);
+  }
+
+  function calc(){
+    var price = num($('price').value);
+    var rate = num($('rate').value) / 100;
+    var gstOn = $('gst').checked, cbOn = $('cb').checked, tmOn = $('tm').checked;
+
+    $('cbBox').classList.toggle('hide', !cbOn);
+    $('tmBox').classList.toggle('hide', !tmOn);
+    $('gstLine').style.display = gstOn ? '' : 'none';
+    $('cbLine').style.display = cbOn ? '' : 'none';
+
+    var comm = price * rate;
+    var gst = gstOn ? comm * 0.09 : 0;
+    var cbPct = Math.max(0, num($('cbPct').value));
+    var cbFee = cbOn ? price * cbPct / 100 : 0;
+    $('cbWarn').textContent = (cbOn && cbFee > comm) ? 'Co-broke fee exceeds the total commission.' : '';
+    $('cbAmt').textContent = '= ' + money(price * cbPct / 100);
+    var side = comm - cbFee;
+    var payout = side;
+
+    $('oComm').textContent = money(comm);
+    $('oGst').textContent = money(gst);
+    $('oBill').textContent = money(comm + gst);
+    $('oComm2').textContent = money(comm);
+    $('oCb').textContent = '-' + money(cbFee);
+    $('oSide').textContent = money(side);
+
+    function row(label, amt){
+      return '<div class="who"><div class="wn">' + label + '</div><div class="wa">' + money(amt) + '</div></div>';
+    }
+    var you = payout, mateLines = '', totalPct = 0;
+    if (tmOn){
+      var rows = $('team').querySelectorAll('.team-row');
+      for (var i=0;i<rows.length;i++){
+        var nm = rows[i].querySelector('.nm').value.trim() || ('Teammate ' + (i+1));
+        var pc = num(rows[i].querySelector('.pc').value);
+        totalPct += pc;
+        var amt = payout * pc / 100;
+        rows[i].parentNode.querySelector('.mamt').textContent = '= ' + money(amt);
+        you -= amt;
+        mateLines += row(esc(nm) + ' (' + pc + '% of your side)', amt);
+      }
+      $('tmWarn').textContent = totalPct > 100 ? 'Teammate shares exceed 100% (' + totalPct + '%).' : '';
+    }
+
+    var who = '';
+    who += row('You (' + Math.max(0, 100 - totalPct) + '% of your side)', you);
+    who += mateLines;
+    if (cbOn) who += row(esc($('cbName').value.trim() || 'Co-broke agent') + ' (' + cbPct + '% of price)', cbFee);
+    $('oYou').textContent = money(you);
+  }
+
+  $('price').addEventListener('input', function(){ commas(this); calc(); });
+  ['rate','cbPct','cbName'].forEach(function(id){ $(id).addEventListener('input', calc); });
+  ['gst','cb','tm'].forEach(function(id){ $(id).addEventListener('change', calc); });
+  $('addMate').addEventListener('click', function(){ addMate('', ''); calc(); });
+  addMate('Teammate A', 30);
+  calc();
+</script>
+</body>
+</html>
